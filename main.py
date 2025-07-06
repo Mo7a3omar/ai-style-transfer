@@ -294,17 +294,23 @@ def style_transfer_with_dalle3(image_description, style_prompt):
         return None, f"Generation error: {str(e)}"
 
 def save_image_to_static(image, style_name):
-    """Save image to static directory"""
+    """Save image to static directory with the corrected public URL"""
     try:
         safe_style_name = "".join(c for c in style_name if c.isalnum() or c in ('-', '_'))
         filename = f"{safe_style_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
         filepath = os.path.join("static", filename)
         image.save(filepath, 'PNG', optimize=True)
-        public_url = f"{get_base_url()}/app/static/{filename}"
+        
+        # ✅ FIXED: Removed the incorrect '/app' from the URL path
+        public_url = f"{get_base_url()}/static/{filename}"
+        
+        logger.info(f"Image saved to: {filepath}")
+        logger.info(f"Public URL created: {public_url}")
         return filepath, filename, public_url
     except Exception as e:
         logger.error(f"Image save error: {e}")
         return None, None, None
+
 
 def create_download_qr(public_url):
     """Create QR code for download"""
