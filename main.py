@@ -13,7 +13,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Configure the page for a wide layout suitable for Holomagic displays
+# Configure the page for a wide layout, suitable for Holomagic displays
 st.set_page_config(
     page_title="AI Style Transfer Studio",
     layout="wide",
@@ -28,14 +28,7 @@ st.markdown("""
     footer {visibility: hidden;}
     header {visibility: hidden;}
     .stDeployButton {display: none;}
-    
-    /* Ensure the main container uses the full width */
-    .main .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        max-width: 100%;
-    }
-    
+
     /* Style for the main header with a gradient effect */
     .main-header {
         text-align: center;
@@ -47,7 +40,7 @@ st.markdown("""
         margin-bottom: 1rem;
         text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
     }
-    
+
     /* Style for the image containers with a border and shadow */
     .image-container {
         border-radius: 20px;
@@ -57,7 +50,7 @@ st.markdown("""
         margin: 1rem 0;
         background: rgba(0, 0, 0, 0.3);
     }
-    
+
     /* Style for the QR code container to make it stand out */
     .qr-container {
         background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(0, 255, 255, 0.1));
@@ -69,7 +62,7 @@ st.markdown("""
         max-width: 350px;
         box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
     }
-    
+
     /* Style for the main action button */
     .stButton > button {
         background: linear-gradient(45deg, #00FFFF, #FF00FF);
@@ -83,7 +76,7 @@ st.markdown("""
         transition: all 0.3s ease;
         box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
     }
-    
+
     .stButton > button:hover {
         transform: scale(1.02);
         box-shadow: 0 0 40px rgba(255, 0, 255, 0.5);
@@ -98,23 +91,16 @@ def init_openai_client():
     Handles errors related to missing or invalid API keys.
     """
     try:
-        api_key = os.getenv('OPENAI_API_KEY')
-        if not api_key and hasattr(st, 'secrets'):
-            api_key = st.secrets.get('OPENAI_API_KEY')
-
+        api_key = os.getenv('OPENAI_API_KEY') or st.secrets.get('OPENAI_API_KEY')
         if not api_key:
             st.error("🔑 **OpenAI API Key Not Found**")
             st.info("Please configure your OPENAI_API_KEY in Streamlit secrets.")
             st.stop()
         
         client = openai.OpenAI(api_key=api_key)
-        client.models.list()  # Test the key
-        logger.info("OpenAI client initialized successfully")
+        client.models.list()  # Test the key to ensure it's valid
         return client
             
-    except openai.AuthenticationError:
-        st.error("❌ Invalid OpenAI API key. Please check your key and try again.")
-        st.stop()
     except Exception as e:
         st.error(f"❌ Failed to initialize OpenAI client: {str(e)}")
         st.stop()
@@ -124,10 +110,9 @@ client = init_openai_client()
 def create_secure_directories():
     """
     Creates necessary directories for storing images.
-    Uses 'media' instead of 'static' to avoid deployment conflicts.
+    Uses 'media' instead of 'static' to avoid potential deployment conflicts.
     """
-    for directory in ["media", "uploaded_images"]:
-        os.makedirs(directory, mode=0o755, exist_ok=True)
+    os.makedirs("media", mode=0o755, exist_ok=True)
 
 create_secure_directories()
 
@@ -225,7 +210,7 @@ def create_download_qr(public_url):
     try:
         qr = segno.make(public_url, error='M')
         buffer = io.BytesIO()
-        qr.save(buffer, kind='png', scale=12, border=4, dark='#000000', light='white')
+        qr.save(buffer, kind='png', scale=12, border=4)
         buffer.seek(0)
         return Image.open(buffer)
     except Exception as e:
@@ -268,7 +253,8 @@ if image_source:
                 st.markdown(f"### ✨ AI Result ({style['name']})")
                 
                 if st.button("🎨 Transform My Photo!", type="primary", use_container_width=True):
-                    st.session_state.stylized_image = None
+                    # Clear previous results before starting a new transformation
+                    st.session_state.styled_image_bytes = None
                     with st.spinner("Analyzing your photo..."):
                         description, error = analyze_image_with_gpt4_vision(original_image)
                     
@@ -281,12 +267,20 @@ if image_source:
                         if error:
                             st.error(f"❌ {error}")
                         else:
-                            st.session_state.stylized_image = styled_image
+                            # Store the generated image as bytes in the session state
+                            buffer = io.BytesIO()
+                            styled_image.save(buffer, format="PNG")
+                            st.session_state.styled_image_bytes = buffer.getvalue()
                             st.success("✅ Transformation complete!")
                 
-                if st.session_state.get('stylized_image'):
-                    st.image(st.session_state.stylized_image, use_container_width=True)
-                    filepath, filename, public_url = save_image_to_media(st.session_state.stylized_image, selected_key)
+                # Check for and display the image from the stored bytes
+                if st.session_state.get('styled_image_bytes'):
+                    # Display the image directly from the bytes
+                    st.image(st.session_state.styled_image_bytes, use_container_width=True)
+                    
+                    # Convert bytes back to a PIL Image for saving and QR code generation
+                    image_to_save = Image.open(io.BytesIO(st.session_state.styled_image_bytes))
+                    _, filename, public_url = save_image_to_media(image_to_save, selected_key)
                     
                     if public_url:
                         st.markdown("### 📱 Scan to Download")
@@ -294,7 +288,7 @@ if image_source:
                         if qr_image:
                             st.image(qr_image, width=250)
                             st.markdown(f"**{filename}**")
-                            # Display the URL for debugging purposes
+                            # Display the generated URL for debugging purposes
                             st.code(public_url, language=None)
                             
         except Exception as e:
