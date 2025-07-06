@@ -1,64 +1,57 @@
-# Environment variables and secrets
+# --- Secrets and Environment Variables ---
+# Never commit secrets, API keys, or local environment files
 .env
-.env.local
-.env.production
+.env.*
 .streamlit/secrets.toml
-
-# API keys and sensitive files
-*.key
 secrets.toml
-config.ini
+*.key
+*.pem
 
-# Python cache
+# --- Python ---
+# General Python cache and artifacts
 __pycache__/
-*.py[cod]
-*$py.class
+*.pyc
+*.pyo
+*.pyd
 *.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
 
-# Generated files
-static/
-uploaded_images/
+# Virtual environment
+/venv/
+/env/
+/.venv/
+/.env/
+
+# Distribution / packaging
+/build/
+/dist/
+*.egg-info/
+*.egg
+
+# --- Generated Media ---
+# Ignore directories for user-uploaded and AI-generated images
+/media/
+/uploaded_images/
+
+# Ignore specific image file types at the root level just in case
 *.png
 *.jpg
 *.jpeg
+*.webp
 
-# IDE files
-.vscode/
+# --- IDE and Editor ---
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# JetBrains (PyCharm, etc.)
 .idea/
-*.swp
-*.swo
-*~
 
-# OS files
+# --- OS and Other ---
+# macOS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
+
+# Windows
 Thumbs.db
-
-# Logs
-*.log
-logs/
-
-# Temporary files
-*.tmp
-*.temp
