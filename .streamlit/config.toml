@@ -1,8 +1,8 @@
 [server]
 enableStaticServing = true
+staticDir = "media"
 port = 8501
 headless = true
-maxUploadSize = 10
 
 [theme]
 base = "dark"
@@ -10,14 +10,6 @@ primaryColor = "#00FFFF"
 backgroundColor = "#000011"
 secondaryBackgroundColor = "#001122"
 textColor = "#FFFFFF"
-font = "monospace"
 
 [browser]
 gatherUsageStats = false
-
-[client]
-caching = true
-displayEnabled = true
-
-[logger]
-level = "info"
