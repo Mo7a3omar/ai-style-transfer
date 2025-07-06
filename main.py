@@ -187,21 +187,23 @@ def style_transfer_with_dalle3(description, style_prompt):
     except Exception as e:
         return None, f"Image generation failed: {e}"
 
+def create_secure_directories():
+    """Creates necessary directories for storing images."""
+    os.makedirs("static", mode=0o755, exist_ok=True)
+
 def save_image_to_media(image, style_name):
-    """
-    Saves the generated image to the 'media' directory and returns its public URL.
-    """
+    """Saves the generated image to the 'static' directory."""
     try:
         safe_name = "".join(c for c in style_name if c.isalnum())
         filename = f"{safe_name}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-        filepath = os.path.join("media", filename)
+        filepath = os.path.join("static", filename)  # Changed from "media"
         image.save(filepath, 'PNG', optimize=True)
-        public_url = f"{get_base_url()}/media/{filename}"
-        logger.info(f"Generated public URL: {public_url}")
+        public_url = f"{get_base_url()}/static/{filename}"  # Changed from "/media/"
         return filepath, filename, public_url
     except Exception as e:
         logger.error(f"Failed to save image: {e}")
         return None, None, None
+
 
 def create_download_qr(public_url):
     """
