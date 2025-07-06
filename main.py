@@ -182,11 +182,11 @@ client = init_openai_client()
 
 # Create secure directories
 def create_secure_directories():
-    """Create directories with proper permissions"""
-    for directory in ["static", "uploaded_images"]:
-        if not os.path.exists(directory):
-            os.makedirs(directory, mode=0o755)
-            logger.info(f"Created directory: {directory}")
+    """Create directories with proper permissions, ignoring if they already exist"""
+    directories = ["static", "uploaded_images"]
+    for directory in directories:
+        os.makedirs(directory, mode=0o755, exist_ok=True)
+        logger.info(f"Ensured directory exists: {directory}")
 
 create_secure_directories()
 
