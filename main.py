@@ -9,27 +9,27 @@ from datetime import datetime
 import requests
 import logging
 
-# Configure logging to show informational messages
+# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Configure the page for a wide layout, suitable for Holomagic displays
+# Configure page for holomagic display proportions
 st.set_page_config(
     page_title="AI Style Transfer Studio",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Optimized CSS for the Holomagic 3D Display look and feel
+# Optimized CSS for Holomagic 3D Display
 st.markdown("""
 <style>
-    /* Hide default Streamlit UI elements for a cleaner look */
+    /* Hide default Streamlit UI elements */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     .stDeployButton {display: none;}
 
-    /* Style for the main header with a gradient effect */
+    /* Style for the main header */
     .main-header {
         text-align: center;
         font-size: 4rem;
@@ -39,28 +39,6 @@ st.markdown("""
         -webkit-text-fill-color: transparent;
         margin-bottom: 1rem;
         text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-    }
-
-    /* Style for the image containers with a border and shadow */
-    .image-container {
-        border-radius: 20px;
-        overflow: hidden;
-        border: 3px solid #00FFFF;
-        box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
-        margin: 1rem 0;
-        background: rgba(0, 0, 0, 0.3);
-    }
-
-    /* Style for the QR code container to make it stand out */
-    .qr-container {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(0, 255, 255, 0.1));
-        border: 3px solid #00FFFF;
-        border-radius: 20px;
-        padding: 2rem;
-        text-align: center;
-        margin: 2rem auto;
-        max-width: 350px;
-        box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
     }
 
     /* Style for the main action button */
@@ -86,10 +64,7 @@ st.markdown("""
 
 @st.cache_resource
 def init_openai_client():
-    """
-    Securely initializes the OpenAI client using Streamlit secrets or environment variables.
-    Handles errors related to missing or invalid API keys.
-    """
+    """Securely initializes the OpenAI client."""
     try:
         api_key = os.getenv('OPENAI_API_KEY') or st.secrets.get('OPENAI_API_KEY')
         if not api_key:
@@ -98,7 +73,7 @@ def init_openai_client():
             st.stop()
         
         client = openai.OpenAI(api_key=api_key)
-        client.models.list()  # Test the key to ensure it's valid
+        client.models.list()
         return client
             
     except Exception as e:
@@ -108,25 +83,22 @@ def init_openai_client():
 client = init_openai_client()
 
 def create_secure_directories():
-    """
-    Creates necessary directories for storing images.
-    Uses 'media' instead of 'static' to avoid potential deployment conflicts.
-    """
-    os.makedirs("media", mode=0o755, exist_ok=True)
+    """Creates necessary directories for storing images."""
+    # ✅ FIXED: Create 'static' directory to match configuration
+    os.makedirs("static", mode=0o755, exist_ok=True)
+    logger.info("Created static directory for image storage")
 
 create_secure_directories()
 
 def get_base_url():
-    """
-    Determines the base URL of the running Streamlit app for creating public links.
-    """
+    """Determines the base URL of the running Streamlit app."""
     try:
         session_info = st.runtime.get_instance()._session_mgr.list_active_sessions()[0]
         return f"{session_info.client.request.protocol}://{session_info.client.request.host}"
     except Exception:
         return "http://localhost:8501"
 
-# Defines the artistic styles available to the user
+# Artistic styles available to the user
 STYLE_PROMPTS = {
     "anime": {"name": "🎌 Anime", "prompt": "Create an image in a vibrant anime/manga art style, maintaining the original pose and composition. Use cel-shading, bold outlines, and large expressive eyes."},
     "ghibli": {"name": "🌿 Ghibli", "prompt": "Create an image in the style of Studio Ghibli, with soft watercolor textures, gentle pastel colors, and a whimsical, dreamy atmosphere. Keep the original pose."},
@@ -136,9 +108,7 @@ STYLE_PROMPTS = {
 }
 
 def validate_image(image_file):
-    """
-    Validates the user-provided image for size and format.
-    """
+    """Validates the user-provided image."""
     try:
         if image_file.size > 10 * 1024 * 1024:
             return False, "Image is too large (max 10MB)."
@@ -151,17 +121,13 @@ def validate_image(image_file):
         return False, f"Invalid image file: {e}"
 
 def encode_image_to_base64(image):
-    """
-    Encodes a PIL image to a base64 string for API transmission.
-    """
+    """Encodes a PIL image to a base64 string."""
     buffered = io.BytesIO()
     image.convert('RGB').save(buffered, format="JPEG", quality=95)
     return base64.b64encode(buffered.getvalue()).decode()
 
 def analyze_image_with_gpt4_vision(image):
-    """
-    Uses GPT-4 Vision to create a detailed text description of an image.
-    """
+    """Uses GPT-4 Vision to create a text description of an image."""
     try:
         base64_image = encode_image_to_base64(image)
         response = client.chat.completions.create(
@@ -174,9 +140,7 @@ def analyze_image_with_gpt4_vision(image):
         return None, f"Image analysis failed: {e}"
 
 def style_transfer_with_dalle3(description, style_prompt):
-    """
-    Uses DALL-E 3 to generate a new image based on a description and style prompt.
-    """
+    """Uses DALL-E 3 to generate a new image."""
     try:
         full_prompt = f"{style_prompt}\n\nScene details: {description}"[:4000]
         response = client.images.generate(model="dall-e-3", prompt=full_prompt, size="1024x1024", quality="hd", n=1)
@@ -187,28 +151,25 @@ def style_transfer_with_dalle3(description, style_prompt):
     except Exception as e:
         return None, f"Image generation failed: {e}"
 
-def create_secure_directories():
-    """Creates necessary directories for storing images."""
-    os.makedirs("static", mode=0o755, exist_ok=True)
-
-def save_image_to_media(image, style_name):
+def save_image_to_static(image, style_name):
     """Saves the generated image to the 'static' directory."""
     try:
         safe_name = "".join(c for c in style_name if c.isalnum())
         filename = f"{safe_name}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-        filepath = os.path.join("static", filename)  # Changed from "media"
+        # ✅ FIXED: Save to 'static' directory
+        filepath = os.path.join("static", filename)
         image.save(filepath, 'PNG', optimize=True)
-        public_url = f"{get_base_url()}/static/{filename}"  # Changed from "/media/"
+        # ✅ FIXED: Use '/static/' in URL path
+        public_url = f"{get_base_url()}/static/{filename}"
+        logger.info(f"Image saved to: {filepath}")
+        logger.info(f"Public URL: {public_url}")
         return filepath, filename, public_url
     except Exception as e:
         logger.error(f"Failed to save image: {e}")
         return None, None, None
 
-
 def create_download_qr(public_url):
-    """
-    Generates a QR code that links to the public URL of the image.
-    """
+    """Generates a QR code for the public URL."""
     try:
         qr = segno.make(public_url, error='M')
         buffer = io.BytesIO()
@@ -255,7 +216,6 @@ if image_source:
                 st.markdown(f"### ✨ AI Result ({style['name']})")
                 
                 if st.button("🎨 Transform My Photo!", type="primary", use_container_width=True):
-                    # Clear previous results before starting a new transformation
                     st.session_state.styled_image_bytes = None
                     with st.spinner("Analyzing your photo..."):
                         description, error = analyze_image_with_gpt4_vision(original_image)
@@ -269,20 +229,17 @@ if image_source:
                         if error:
                             st.error(f"❌ {error}")
                         else:
-                            # Store the generated image as bytes in the session state
                             buffer = io.BytesIO()
                             styled_image.save(buffer, format="PNG")
                             st.session_state.styled_image_bytes = buffer.getvalue()
                             st.success("✅ Transformation complete!")
                 
-                # Check for and display the image from the stored bytes
                 if st.session_state.get('styled_image_bytes'):
-                    # Display the image directly from the bytes
                     st.image(st.session_state.styled_image_bytes, use_container_width=True)
                     
-                    # Convert bytes back to a PIL Image for saving and QR code generation
                     image_to_save = Image.open(io.BytesIO(st.session_state.styled_image_bytes))
-                    _, filename, public_url = save_image_to_media(image_to_save, selected_key)
+                    # ✅ FIXED: Updated function name to match
+                    _, filename, public_url = save_image_to_static(image_to_save, selected_key)
                     
                     if public_url:
                         st.markdown("### 📱 Scan to Download")
@@ -290,7 +247,6 @@ if image_source:
                         if qr_image:
                             st.image(qr_image, width=250)
                             st.markdown(f"**{filename}**")
-                            # Display the generated URL for debugging purposes
                             st.code(public_url, language=None)
                             
         except Exception as e:
