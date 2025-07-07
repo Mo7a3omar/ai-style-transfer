@@ -29,8 +29,7 @@ __pycache__/
 
 # --- Generated Media ---
 # Ignore directories for user-uploaded and AI-generated images
-/media/
-/uploaded_images/
+/static/
 
 # Ignore specific image file types at the root level just in case
 *.png
