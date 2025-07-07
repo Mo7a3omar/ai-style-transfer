@@ -346,8 +346,51 @@ def style_transfer_with_dalle3(image_description, style_prompt):
         logger.error(f"Style transfer error: {e}")
         return None, f"Generation error: {str(e)}"
 
+def upload_to_temporary_host(image_bytes):
+    """Upload image to temporary hosting service for QR code compatibility"""
+    try:
+        # Using 0x0.st (free, no registration needed)
+        files = {'file': ('styled_image.png', image_bytes, 'image/png')}
+        response = requests.post('https://0x0.st', files=files, timeout=30)
+        
+        if response.status_code == 200:
+            url = response.text.strip()
+            logger.info(f"Image uploaded successfully: {url}")
+            return url
+            
+    except Exception as e:
+        logger.error(f"Image upload failed: {e}")
+    
+    return None
+
+def create_qr_with_hosted_image(image_bytes, filename):
+    """Create QR code with hosted image URL - FIXED for data size limitations"""
+    try:
+        # Upload image and get short URL
+        image_url = upload_to_temporary_host(image_bytes)
+        
+        if image_url:
+            # Create QR code with the short URL (much smaller data)
+            qr = segno.make(image_url, error='M')
+            buffer = io.BytesIO()
+            qr.save(buffer, kind='png', scale=12, border=4, dark='#000000', light='white')
+            buffer.seek(0)
+            return Image.open(buffer), image_url
+        else:
+            # Fallback: Create QR with app info
+            fallback_text = f"AI Style Transfer - {filename}"
+            qr = segno.make(fallback_text, error='M')
+            buffer = io.BytesIO()
+            qr.save(buffer, kind='png', scale=10, border=4)
+            buffer.seek(0)
+            return Image.open(buffer), None
+        
+    except Exception as e:
+        logger.error(f"QR creation failed: {e}")
+        return None, None
+
 def create_download_options(image_bytes, style_name):
-    """Create multiple download options without file system dependencies"""
+    """Create download options with working QR codes"""
     try:
         # Generate filename
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -358,22 +401,14 @@ def create_download_options(image_bytes, style_name):
         b64 = base64.b64encode(image_bytes).decode()
         download_link = f'<a href="data:image/png;base64,{b64}" download="{filename}" class="download-link">📥 Download {filename}</a>'
         
-        # Create QR code with base64 data
-        try:
-            data_url = f"data:image/png;base64,{b64}"
-            qr = segno.make(data_url, error='M')
-            qr_buffer = io.BytesIO()
-            qr.save(qr_buffer, kind='png', scale=10, border=4, dark='#000000', light='white')
-            qr_buffer.seek(0)
-            qr_image = Image.open(qr_buffer)
-            return download_link, qr_image, filename
-        except Exception as e:
-            logger.warning(f"QR code generation failed: {e}")
-            return download_link, None, filename
+        # Create QR code with hosted image (FIXED for size limitations)
+        qr_image, hosted_url = create_qr_with_hosted_image(image_bytes, filename)
+        
+        return download_link, qr_image, filename, hosted_url
             
     except Exception as e:
         logger.error(f"Download options creation failed: {e}")
-        return None, None, None
+        return None, None, None, None
 
 # Main Interface
 st.markdown('<h1 class="main-header">AI Selfie Style Transfer</h1>', unsafe_allow_html=True)
@@ -478,8 +513,8 @@ if image_source is not None:
                     st.image(st.session_state.styled_image_bytes, use_container_width=True)
                     st.markdown('</div>', unsafe_allow_html=True)
                     
-                    # Create download options
-                    download_link, qr_image, filename = create_download_options(
+                    # Create download options with working QR codes
+                    download_link, qr_image, filename, hosted_url = create_download_options(
                         st.session_state.styled_image_bytes, 
                         st.session_state.selected_style
                     )
@@ -499,13 +534,16 @@ if image_source is not None:
                     if download_link:
                         st.markdown(download_link, unsafe_allow_html=True)
                     
-                    # Method 3: QR code for mobile devices
+                    # Method 3: QR code for mobile devices (FIXED)
                     if qr_image:
-                        st.markdown("### 📱 Scan QR Code")
+                        st.markdown("### 📱 Scan QR Code to Download")
                         st.markdown('<div class="qr-container">', unsafe_allow_html=True)
                         st.image(qr_image, width=250)
-                        st.markdown("**Scan with your phone to download**")
-                        st.caption("QR code contains the image data directly")
+                        if hosted_url:
+                            st.markdown("**Scan to download your styled image**")
+                            st.code(hosted_url, language=None)
+                        else:
+                            st.markdown("**QR contains image information**")
                         st.markdown('</div>', unsafe_allow_html=True)
         
         except Exception as e:
@@ -521,7 +559,7 @@ st.markdown(
     """
     <div style='text-align: center; color: #7F8C8D; font-size: 1rem; margin-top: 2rem;'>
         🔒 Secure AI Style Transfer • 🤖 GPT-4 Vision + DALL-E 3<br>
-        🛡️ API Keys Protected • 📱 Multiple Download Options Available
+        🛡️ API Keys Protected • 📱 QR Downloads Available
     </div>
     """,
     unsafe_allow_html=True
