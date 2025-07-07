@@ -346,39 +346,237 @@ def style_transfer_with_dalle3(image_description, style_prompt):
         logger.error(f"Style transfer error: {e}")
         return None, f"Generation error: {str(e)}"
 
-def upload_to_temporary_host(image_bytes):
-    """Upload image to temporary hosting service for QR code compatibility"""
+def create_download_page(image_bytes, filename, style_name):
+    """Create a beautiful HTML download page with image and download button"""
     try:
-        # Using 0x0.st (free, no registration needed)
-        files = {'file': ('styled_image.png', image_bytes, 'image/png')}
-        response = requests.post('https://0x0.st', files=files, timeout=30)
+        # Encode image as base64
+        b64_image = base64.b64encode(image_bytes).decode()
         
-        if response.status_code == 200:
-            url = response.text.strip()
-            logger.info(f"Image uploaded successfully: {url}")
-            return url
+        # Create a beautiful HTML page optimized for mobile and desktop
+        html_content = f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Your AI Styled Image - {filename}</title>
+            <style>
+                * {{
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }}
+                
+                body {{
+                    font-family: 'Arial', sans-serif;
+                    background: linear-gradient(135deg, #000011, #001122, #002233);
+                    color: white;
+                    min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                }}
+                
+                .container {{
+                    max-width: 600px;
+                    width: 100%;
+                    text-align: center;
+                    background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(10px);
+                    border-radius: 20px;
+                    padding: 30px;
+                    border: 2px solid rgba(0, 255, 255, 0.3);
+                    box-shadow: 0 0 40px rgba(0, 255, 255, 0.2);
+                }}
+                
+                .header {{
+                    margin-bottom: 30px;
+                }}
+                
+                .title {{
+                    font-size: 2.5rem;
+                    font-weight: bold;
+                    background: linear-gradient(45deg, #00FFFF, #FF00FF, #FFFF00);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    margin-bottom: 10px;
+                    text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+                }}
+                
+                .subtitle {{
+                    font-size: 1.2rem;
+                    color: #00FFFF;
+                    margin-bottom: 20px;
+                }}
+                
+                .image-container {{
+                    margin: 30px 0;
+                    border-radius: 15px;
+                    overflow: hidden;
+                    border: 3px solid #00FFFF;
+                    box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+                    background: rgba(0, 0, 0, 0.3);
+                }}
+                
+                .styled-image {{
+                    width: 100%;
+                    height: auto;
+                    display: block;
+                }}
+                
+                .download-section {{
+                    margin-top: 30px;
+                }}
+                
+                .download-btn {{
+                    background: linear-gradient(45deg, #00FFFF, #FF00FF);
+                    color: white;
+                    border: none;
+                    padding: 20px 40px;
+                    font-size: 1.3rem;
+                    font-weight: bold;
+                    border-radius: 30px;
+                    cursor: pointer;
+                    text-decoration: none;
+                    display: inline-block;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.3);
+                    margin: 10px;
+                }}
+                
+                .download-btn:hover {{
+                    transform: scale(1.05);
+                    box-shadow: 0 8px 30px rgba(255, 0, 255, 0.4);
+                }}
+                
+                .info {{
+                    margin-top: 20px;
+                    padding: 15px;
+                    background: rgba(0, 255, 255, 0.1);
+                    border-radius: 10px;
+                    border: 1px solid rgba(0, 255, 255, 0.3);
+                }}
+                
+                .filename {{
+                    font-family: monospace;
+                    color: #00FFFF;
+                    font-size: 0.9rem;
+                    margin-top: 10px;
+                }}
+                
+                .footer {{
+                    margin-top: 30px;
+                    font-size: 0.9rem;
+                    color: #888;
+                }}
+                
+                @media (max-width: 768px) {{
+                    .title {{
+                        font-size: 2rem;
+                    }}
+                    
+                    .container {{
+                        padding: 20px;
+                        margin: 10px;
+                    }}
+                    
+                    .download-btn {{
+                        padding: 15px 30px;
+                        font-size: 1.1rem;
+                    }}
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1 class="title">AI Style Transfer</h1>
+                    <p class="subtitle">Your {style_name} styled image is ready!</p>
+                </div>
+                
+                <div class="image-container">
+                    <img src="data:image/png;base64,{b64_image}" alt="Styled Image" class="styled-image">
+                </div>
+                
+                <div class="download-section">
+                    <a href="data:image/png;base64,{b64_image}" download="{filename}" class="download-btn">
+                        📥 Download High Quality PNG
+                    </a>
+                </div>
+                
+                <div class="info">
+                    <p>🎨 <strong>Style:</strong> {style_name}</p>
+                    <p>📱 <strong>Mobile Optimized:</strong> Works on all devices</p>
+                    <p>🔒 <strong>Secure:</strong> Generated with AI Style Transfer Studio</p>
+                    <div class="filename">{filename}</div>
+                </div>
+                
+                <div class="footer">
+                    <p>Powered by GPT-4 Vision + DALL-E 3 • Holomagic 3D Display Ready</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Upload HTML page to a hosting service
+        try:
+            # Using dpaste.com for HTML hosting
+            response = requests.post('https://dpaste.com/api/v2/', 
+                                   data={
+                                       'content': html_content, 
+                                       'syntax': 'html', 
+                                       'expiry_days': 7  # 7 days expiration
+                                   }, 
+                                   timeout=30)
+            
+            if response.status_code == 201:
+                page_url = response.text.strip()
+                logger.info(f"Download page created: {page_url}")
+                return page_url
+                
+        except Exception as e:
+            logger.error(f"HTML page upload failed: {e}")
+        
+        # Fallback: Try alternative service
+        try:
+            # Using hastebin as fallback
+            response = requests.post('https://hastebin.com/documents', 
+                                   data=html_content, 
+                                   timeout=30)
+            
+            if response.status_code == 200:
+                key = response.json()['key']
+                page_url = f"https://hastebin.com/raw/{key}"
+                logger.info(f"Fallback download page created: {page_url}")
+                return page_url
+                
+        except Exception as e:
+            logger.error(f"Fallback HTML upload failed: {e}")
             
     except Exception as e:
-        logger.error(f"Image upload failed: {e}")
+        logger.error(f"Download page creation failed: {e}")
     
     return None
 
-def create_qr_with_hosted_image(image_bytes, filename):
-    """Create QR code with hosted image URL - FIXED for data size limitations"""
+def create_qr_with_download_page(image_bytes, filename, style_name):
+    """Create QR code that links to a download page with image and button"""
     try:
-        # Upload image and get short URL
-        image_url = upload_to_temporary_host(image_bytes)
+        # Create the download page
+        page_url = create_download_page(image_bytes, filename, style_name)
         
-        if image_url:
-            # Create QR code with the short URL (much smaller data)
-            qr = segno.make(image_url, error='M')
+        if page_url:
+            # Create QR code with the page URL
+            qr = segno.make(page_url, error='M')
             buffer = io.BytesIO()
             qr.save(buffer, kind='png', scale=12, border=4, dark='#000000', light='white')
             buffer.seek(0)
-            return Image.open(buffer), image_url
+            return Image.open(buffer), page_url
         else:
-            # Fallback: Create QR with app info
-            fallback_text = f"AI Style Transfer - {filename}"
+            # Fallback QR with app info
+            fallback_text = f"AI Style Transfer - {filename} - {style_name} Style"
             qr = segno.make(fallback_text, error='M')
             buffer = io.BytesIO()
             qr.save(buffer, kind='png', scale=10, border=4)
@@ -386,11 +584,11 @@ def create_qr_with_hosted_image(image_bytes, filename):
             return Image.open(buffer), None
         
     except Exception as e:
-        logger.error(f"QR creation failed: {e}")
+        logger.error(f"QR creation with download page failed: {e}")
         return None, None
 
 def create_download_options(image_bytes, style_name):
-    """Create download options with working QR codes"""
+    """Create download options with QR code linking to download page"""
     try:
         # Generate filename
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -401,10 +599,10 @@ def create_download_options(image_bytes, style_name):
         b64 = base64.b64encode(image_bytes).decode()
         download_link = f'<a href="data:image/png;base64,{b64}" download="{filename}" class="download-link">📥 Download {filename}</a>'
         
-        # Create QR code with hosted image (FIXED for size limitations)
-        qr_image, hosted_url = create_qr_with_hosted_image(image_bytes, filename)
+        # Create QR code with download page
+        qr_image, page_url = create_qr_with_download_page(image_bytes, filename, style_name)
         
-        return download_link, qr_image, filename, hosted_url
+        return download_link, qr_image, filename, page_url
             
     except Exception as e:
         logger.error(f"Download options creation failed: {e}")
@@ -513,11 +711,12 @@ if image_source is not None:
                     st.image(st.session_state.styled_image_bytes, use_container_width=True)
                     st.markdown('</div>', unsafe_allow_html=True)
                     
-                    # Create download options with working QR codes
-                    download_link, qr_image, filename, hosted_url = create_download_options(
-                        st.session_state.styled_image_bytes, 
-                        st.session_state.selected_style
-                    )
+                    # Create download options with QR code linking to download page
+                    with st.spinner("🔗 Creating download page..."):
+                        download_link, qr_image, filename, page_url = create_download_options(
+                            st.session_state.styled_image_bytes, 
+                            st.session_state.selected_style
+                        )
                     
                     st.markdown("### 📥 Download Options")
                     
@@ -534,14 +733,15 @@ if image_source is not None:
                     if download_link:
                         st.markdown(download_link, unsafe_allow_html=True)
                     
-                    # Method 3: QR code for mobile devices (FIXED)
+                    # Method 3: QR code linking to download page (MAIN FEATURE)
                     if qr_image:
-                        st.markdown("### 📱 Scan QR Code to Download")
+                        st.markdown("### 📱 Scan QR Code for Download Page")
                         st.markdown('<div class="qr-container">', unsafe_allow_html=True)
                         st.image(qr_image, width=250)
-                        if hosted_url:
-                            st.markdown("**Scan to download your styled image**")
-                            st.code(hosted_url, language=None)
+                        if page_url:
+                            st.markdown("**Scan to open download page with image and button**")
+                            st.code(page_url, language=None)
+                            st.caption("✨ Page includes: Image display + Download button + Mobile optimized")
                         else:
                             st.markdown("**QR contains image information**")
                         st.markdown('</div>', unsafe_allow_html=True)
@@ -559,7 +759,7 @@ st.markdown(
     """
     <div style='text-align: center; color: #7F8C8D; font-size: 1rem; margin-top: 2rem;'>
         🔒 Secure AI Style Transfer • 🤖 GPT-4 Vision + DALL-E 3<br>
-        🛡️ API Keys Protected • 📱 QR Downloads Available
+        🛡️ API Keys Protected • 📱 QR Download Pages Available
     </div>
     """,
     unsafe_allow_html=True
