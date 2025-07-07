@@ -1,56 +1,17 @@
-# --- Secrets and Environment Variables ---
-# Never commit secrets, API keys, or local environment files
+# Environment variables and secrets
 .env
 .env.*
 .streamlit/secrets.toml
-secrets.toml
-*.key
-*.pem
 
-# --- Python ---
-# General Python cache and artifacts
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
-*.pyd
-*.so
 
-# Virtual environment
-/venv/
-/env/
-/.venv/
-/.env/
-
-# Distribution / packaging
-/build/
-/dist/
-*.egg-info/
-*.egg
-
-# --- Generated Media ---
-# Ignore directories for user-uploaded and AI-generated images
-/static/
-
-# Ignore specific image file types at the root level just in case
-*.png
-*.jpg
-*.jpeg
-*.webp
-
-# --- IDE and Editor ---
-# Visual Studio Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-# JetBrains (PyCharm, etc.)
+# IDE files
+.vscode/
 .idea/
 
-# --- OS and Other ---
-# macOS
+# OS files
 .DS_Store
-
-# Windows
 Thumbs.db
