@@ -29,7 +29,14 @@ st.markdown("""
     header {visibility: hidden;}
     .stDeployButton {display: none;}
 
-    /* Style for the main header */
+    /* Full screen layout */
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        max-width: 100%;
+    }
+
+    /* Holomagic optimized header */
     .main-header {
         text-align: center;
         font-size: 4rem;
@@ -41,7 +48,47 @@ st.markdown("""
         text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
     }
 
-    /* Style for the main action button */
+    /* Style selection cards */
+    .style-button {
+        background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
+        border: 2px solid #00FFFF;
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin: 0.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+
+    .style-button:hover {
+        transform: scale(1.05);
+        border-color: #FF00FF;
+        box-shadow: 0 0 30px rgba(255, 0, 255, 0.5);
+    }
+
+    /* Image containers */
+    .image-container {
+        border-radius: 20px;
+        overflow: hidden;
+        border: 3px solid #00FFFF;
+        box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        margin: 1rem 0;
+        background: rgba(0, 0, 0, 0.3);
+    }
+
+    /* QR Code container for 3D display */
+    .qr-container {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(0, 255, 255, 0.1));
+        border: 3px solid #00FFFF;
+        border-radius: 20px;
+        padding: 2rem;
+        text-align: center;
+        margin: 2rem auto;
+        max-width: 350px;
+        box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
+    }
+
+    /* Transform button */
     .stButton > button {
         background: linear-gradient(45deg, #00FFFF, #FF00FF);
         color: white;
@@ -59,22 +106,109 @@ st.markdown("""
         transform: scale(1.02);
         box-shadow: 0 0 40px rgba(255, 0, 255, 0.5);
     }
+
+    /* Status messages */
+    .stSuccess {
+        background: rgba(0, 255, 0, 0.1);
+        border: 2px solid #00FF00;
+        border-radius: 15px;
+    }
+
+    .stError {
+        background: rgba(255, 0, 0, 0.1);
+        border: 2px solid #FF0000;
+        border-radius: 15px;
+    }
+
+    /* File uploader and camera input */
+    .stFileUploader, .stCameraInput {
+        border: 2px dashed #00FFFF;
+        border-radius: 20px;
+        padding: 2rem;
+        background: rgba(0, 255, 255, 0.05);
+    }
+
+    /* Custom download link styling */
+    .download-link {
+        text-decoration: none !important;
+        background: linear-gradient(45deg, #00FFFF, #FF00FF) !important;
+        color: white !important;
+        padding: 15px 30px !important;
+        border-radius: 25px !important;
+        display: inline-block !important;
+        font-weight: bold !important;
+        font-size: 1.1rem !important;
+        margin: 10px 0 !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 5px 15px rgba(0, 255, 255, 0.3) !important;
+    }
+
+    .download-link:hover {
+        transform: scale(1.05) !important;
+        box-shadow: 0 8px 25px rgba(255, 0, 255, 0.4) !important;
+    }
+
+    /* Security indicator */
+    .security-badge {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 255, 0, 0.8);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        z-index: 1000;
+    }
 </style>
 """, unsafe_allow_html=True)
 
+# Security indicator
+st.markdown('<div class="security-badge">🔒 Secure API</div>', unsafe_allow_html=True)
+
+# Secure OpenAI client initialization
 @st.cache_resource
 def init_openai_client():
-    """Securely initializes the OpenAI client."""
+    """Initialize OpenAI client with comprehensive security checks"""
     try:
-        api_key = os.getenv('OPENAI_API_KEY') or st.secrets.get('OPENAI_API_KEY')
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key and hasattr(st, 'secrets'):
+            api_key = st.secrets.get('OPENAI_API_KEY')
+
         if not api_key:
             st.error("🔑 **OpenAI API Key Not Found**")
-            st.info("Please configure your OPENAI_API_KEY in Streamlit secrets.")
+            st.info("**For Streamlit Cloud deployment:**")
+            st.code("""
+Go to your app dashboard → Settings → Secrets
+Add: OPENAI_API_KEY = "your-api-key-here"
+            """)
+            st.info("**For local development:**")
+            st.code("""
+Create .streamlit/secrets.toml:
+OPENAI_API_KEY = "your-api-key-here"
+            """)
             st.stop()
         
+        # Validate API key format
+        if not api_key.startswith('sk-'):
+            st.error("❌ Invalid OpenAI API key format")
+            st.stop()
+        
+        # Initialize client with error handling
         client = openai.OpenAI(api_key=api_key)
-        client.models.list()
-        return client
+        
+        # Test API key validity with a minimal request
+        try:
+            client.models.list()
+            logger.info("OpenAI client initialized successfully")
+            return client
+        except openai.AuthenticationError:
+            st.error("❌ Invalid OpenAI API key. Please check your key and try again.")
+            st.info("Get a new API key at: https://platform.openai.com/api-keys")
+            st.stop()
+        except Exception as e:
+            st.error(f"❌ OpenAI API connection failed: {str(e)}")
+            st.stop()
             
     except Exception as e:
         st.error(f"❌ Failed to initialize OpenAI client: {str(e)}")
@@ -82,174 +216,313 @@ def init_openai_client():
 
 client = init_openai_client()
 
-def create_secure_directories():
-    """Creates necessary directories for storing images."""
-    # ✅ FIXED: Create 'static' directory to match configuration
-    os.makedirs("static", mode=0o755, exist_ok=True)
-    logger.info("Created static directory for image storage")
-
-create_secure_directories()
-
-def get_base_url():
-    """Determines the base URL of the running Streamlit app."""
-    try:
-        session_info = st.runtime.get_instance()._session_mgr.list_active_sessions()[0]
-        return f"{session_info.client.request.protocol}://{session_info.client.request.host}"
-    except Exception:
-        return "http://localhost:8501"
-
-# Artistic styles available to the user
+# Streamlined style prompts
 STYLE_PROMPTS = {
-    "anime": {"name": "🎌 Anime", "prompt": "Create an image in a vibrant anime/manga art style, maintaining the original pose and composition. Use cel-shading, bold outlines, and large expressive eyes."},
-    "ghibli": {"name": "🌿 Ghibli", "prompt": "Create an image in the style of Studio Ghibli, with soft watercolor textures, gentle pastel colors, and a whimsical, dreamy atmosphere. Keep the original pose."},
-    "fantasy": {"name": "🧙‍♂️ Fantasy", "prompt": "Create an image in a high-fantasy art style, with magical lighting, rich colors, and ornate details, while preserving the original character's pose and features."},
-    "cyberpunk": {"name": "🤖 Cyberpunk", "prompt": "Create a cyberpunk style image featuring neon colors, futuristic elements, and high-contrast lighting. The original composition and pose should be maintained."},
-    "photorealistic": {"name": "📸 Realistic", "prompt": "Create a photorealistic version of the image with professional lighting, sharp details, and cinematic quality, matching the original pose exactly."}
+    "anime": {
+        "name": "🎌 Anime",
+        "prompt": "Create an image in anime/manga art style with the same composition, pose, and facial features as the reference image. Use cel-shaded coloring, bold black outlines, vibrant saturated colors, large expressive eyes typical of Japanese animation, and smooth gradients. Maintain the exact same pose, clothing, and scene layout.",
+    },
+    "ghibli": {
+        "name": "🌿 Ghibli",
+        "prompt": "Create a Studio Ghibli style image with soft watercolor-like textures, gentle pastel colors, whimsical and dreamy atmosphere, hand-drawn animation quality, natural organic shapes, and the characteristic Miyazaki aesthetic with attention to environmental details and magical realism.",
+    },
+    "fantasy": {
+        "name": "🧙‍♂️ Fantasy",
+        "prompt": "Create an image in fantasy art style with the same composition, pose, and facial features as the reference image. Add magical atmosphere with mystical lighting, rich deep colors with golden highlights, ornate fantasy details, and painterly quality like fantasy book illustrations. Keep the same pose, character features, and scene layout.",
+    },
+    "cyberpunk": {
+        "name": "🤖 Cyberpunk",
+        "prompt": "Create a cyberpunk style image with neon colors, futuristic elements, high contrast lighting, and sci-fi aesthetic, while maintaining the original composition and pose.",
+    },
+    "photorealistic": {
+        "name": "📸 Realistic",
+        "prompt": "Create a photorealistic version with professional lighting, sharp details, realistic textures, and cinematic quality. Maintain the exact same pose, facial features, and scene layout but with enhanced realism.",
+    }
 }
 
 def validate_image(image_file):
-    """Validates the user-provided image."""
+    """Validate uploaded image for security"""
     try:
-        if image_file.size > 10 * 1024 * 1024:
-            return False, "Image is too large (max 10MB)."
+        # Check file size (max 10MB)
+        if hasattr(image_file, 'size') and image_file.size > 10 * 1024 * 1024:
+            return False, "Image too large (max 10MB)"
+        
+        # Verify it's actually an image
         img = Image.open(image_file)
         img.verify()
+        
+        # Check dimensions (reasonable limits)
         if img.size[0] > 4096 or img.size[1] > 4096:
-            return False, "Image dimensions are too large (max 4096x4096)."
-        return True, "Valid image."
+            return False, "Image dimensions too large (max 4096x4096)"
+        
+        return True, "Valid image"
     except Exception as e:
-        return False, f"Invalid image file: {e}"
+        return False, f"Invalid image: {str(e)}"
 
 def encode_image_to_base64(image):
-    """Encodes a PIL image to a base64 string."""
-    buffered = io.BytesIO()
-    image.convert('RGB').save(buffered, format="JPEG", quality=95)
-    return base64.b64encode(buffered.getvalue()).decode()
+    """Convert PIL Image to base64 string with error handling"""
+    try:
+        buffered = io.BytesIO()
+        if image.mode in ('RGBA', 'P'):
+            image = image.convert('RGB')
+        image.save(buffered, format="JPEG", quality=95)
+        return base64.b64encode(buffered.getvalue()).decode()
+    except Exception as e:
+        logger.error(f"Image encoding error: {e}")
+        raise
 
 def analyze_image_with_gpt4_vision(image):
-    """Uses GPT-4 Vision to create a text description of an image."""
+    """Analyze image with GPT-4 Vision with comprehensive error handling"""
     try:
         base64_image = encode_image_to_base64(image)
+        
         response = client.chat.completions.create(
             model="gpt-4o",
-            messages=[{"role": "user", "content": [{"type": "text", "text": "Describe this image in detail, focusing on the subject's pose, expression, clothing, and the background setting."}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}", "detail": "high"}}]}],
-            max_tokens=400
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Describe this image focusing on pose, facial features, clothing, background, and composition. Be specific about positioning for accurate recreation."
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}",
+                                "detail": "high"
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens=400,
+            timeout=30
         )
+        
         return response.choices[0].message.content, None
+        
+    except openai.RateLimitError:
+        return None, "Rate limit exceeded. Please try again in a moment."
+    except openai.APIError as e:
+        return None, f"OpenAI API error: {str(e)}"
     except Exception as e:
-        return None, f"Image analysis failed: {e}"
+        logger.error(f"Image analysis error: {e}")
+        return None, f"Analysis error: {str(e)}"
 
-def style_transfer_with_dalle3(description, style_prompt):
-    """Uses DALL-E 3 to generate a new image."""
+def style_transfer_with_dalle3(image_description, style_prompt):
+    """Generate styled image with DALL-E 3 with comprehensive error handling"""
     try:
-        full_prompt = f"{style_prompt}\n\nScene details: {description}"[:4000]
-        response = client.images.generate(model="dall-e-3", prompt=full_prompt, size="1024x1024", quality="hd", n=1)
-        image_url = response.data[0].url
-        img_response = requests.get(image_url)
-        img_response.raise_for_status()
-        return Image.open(io.BytesIO(img_response.content)), None
+        full_prompt = f"{style_prompt}\n\nScene: {image_description}"
+        
+        if len(full_prompt) > 4000:
+            full_prompt = full_prompt[:4000]
+        
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=full_prompt,
+            size="1024x1024",
+            quality="hd",
+            n=1,
+            timeout=60
+        )
+        
+        if response.data and len(response.data) > 0:
+            image_url = response.data[0].url
+            img_response = requests.get(image_url, timeout=30)
+            img_response.raise_for_status()
+            generated_image = Image.open(io.BytesIO(img_response.content))
+            return generated_image, None
+        else:
+            return None, "No image generated"
+            
+    except openai.RateLimitError:
+        return None, "Rate limit exceeded. Please try again in a moment."
+    except openai.APIError as e:
+        return None, f"DALL-E API error: {str(e)}"
+    except requests.RequestException as e:
+        return None, f"Image download error: {str(e)}"
     except Exception as e:
-        return None, f"Image generation failed: {e}"
+        logger.error(f"Style transfer error: {e}")
+        return None, f"Generation error: {str(e)}"
 
-def save_image_to_static(image, style_name):
-    """Saves the generated image to the 'static' directory."""
+def create_download_options(image_bytes, style_name):
+    """Create multiple download options without file system dependencies"""
     try:
-        safe_name = "".join(c for c in style_name if c.isalnum())
-        filename = f"{safe_name}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-        # ✅ FIXED: Save to 'static' directory
-        filepath = os.path.join("static", filename)
-        image.save(filepath, 'PNG', optimize=True)
-        # ✅ FIXED: Use '/static/' in URL path
-        public_url = f"{get_base_url()}/static/{filename}"
-        logger.info(f"Image saved to: {filepath}")
-        logger.info(f"Public URL: {public_url}")
-        return filepath, filename, public_url
+        # Generate filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_style_name = "".join(c for c in style_name if c.isalnum() or c in ('-', '_'))
+        filename = f"styled_{safe_style_name}_{timestamp}.png"
+        
+        # Create base64 data URL for HTML download
+        b64 = base64.b64encode(image_bytes).decode()
+        download_link = f'<a href="data:image/png;base64,{b64}" download="{filename}" class="download-link">📥 Download {filename}</a>'
+        
+        # Create QR code with base64 data
+        try:
+            data_url = f"data:image/png;base64,{b64}"
+            qr = segno.make(data_url, error='M')
+            qr_buffer = io.BytesIO()
+            qr.save(qr_buffer, kind='png', scale=10, border=4, dark='#000000', light='white')
+            qr_buffer.seek(0)
+            qr_image = Image.open(qr_buffer)
+            return download_link, qr_image, filename
+        except Exception as e:
+            logger.warning(f"QR code generation failed: {e}")
+            return download_link, None, filename
+            
     except Exception as e:
-        logger.error(f"Failed to save image: {e}")
+        logger.error(f"Download options creation failed: {e}")
         return None, None, None
 
-def create_download_qr(public_url):
-    """Generates a QR code for the public URL."""
-    try:
-        qr = segno.make(public_url, error='M')
-        buffer = io.BytesIO()
-        qr.save(buffer, kind='png', scale=12, border=4)
-        buffer.seek(0)
-        return Image.open(buffer)
-    except Exception as e:
-        logger.error(f"Failed to create QR code: {e}")
-        return None
-
-# --- Main Application UI ---
+# Main Interface
 st.markdown('<h1 class="main-header">AI Selfie Style Transfer</h1>', unsafe_allow_html=True)
 
+# Style Selection
 st.markdown("## 1. Select Your Style")
-style_cols = st.columns(len(STYLE_PROMPTS))
-selected_key = st.session_state.get('selected_style', 'anime')
+style_cols = st.columns(5)
 
-for i, (key, info) in enumerate(STYLE_PROMPTS.items()):
-    if style_cols[i].button(info["name"], key=f"style_{key}", use_container_width=True):
-        selected_key = key
-        st.session_state.selected_style = key
+selected_style = None
+for idx, (style_key, style_info) in enumerate(STYLE_PROMPTS.items()):
+    with style_cols[idx]:
+        if st.button(style_info["name"], key=f"style_{style_key}", use_container_width=True):
+            selected_style = style_key
 
+if selected_style:
+    st.session_state.selected_style = selected_style
+
+if 'selected_style' not in st.session_state:
+    st.session_state.selected_style = 'anime'
+
+# Image Upload with Camera Priority
 st.markdown("## 2. Provide an Image")
-tab1, tab2 = st.tabs(["📸 Take Photo", "⬆️ Upload Image"])
-image_source = tab1.camera_input("Take a selfie!", help="Uses your device's camera.") or \
-               tab2.file_uploader("Upload an image file", type=["png", "jpg", "jpeg"])
 
-if image_source:
-    is_valid, message = validate_image(image_source)
+# Use tabs for Camera and Upload options
+tab1, tab2 = st.tabs(["📸 Take Photo", "⬆️ Upload Image"])
+image_source = None
+
+with tab1:
+    # Selfie camera is the default on mobile devices
+    camera_photo = st.camera_input(
+        "Take a selfie to transform!", 
+        help="This will use your device's front-facing camera."
+    )
+    if camera_photo:
+        image_source = camera_photo
+
+with tab2:
+    uploaded_file = st.file_uploader(
+        "Or upload an image file",
+        type=["png", "jpg", "jpeg"],
+        help="Select an image to transform (max 10MB, 4096x4096px)"
+    )
+    if uploaded_file:
+        image_source = uploaded_file
+
+# Main Processing Logic
+if image_source is not None:
+    # Validate uploaded image
+    is_valid, validation_message = validate_image(image_source)
+    
     if not is_valid:
-        st.error(f"❌ {message}")
+        st.error(f"❌ {validation_message}")
     else:
         try:
+            # Reset file pointer after validation
             image_source.seek(0)
             original_image = Image.open(image_source).convert('RGB')
             
+            # Display layout
             col1, col2 = st.columns(2, gap="large")
+            
             with col1:
                 st.markdown("### Original Photo")
+                st.markdown('<div class="image-container">', unsafe_allow_html=True)
                 st.image(original_image, use_container_width=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+                st.caption(f"Size: {original_image.size[0]}x{original_image.size[1]} pixels")
             
             with col2:
-                style = STYLE_PROMPTS[selected_key]
-                st.markdown(f"### ✨ AI Result ({style['name']})")
+                current_style = STYLE_PROMPTS[st.session_state.selected_style]
+                st.markdown(f"### ✨ {current_style['name']} Style")
                 
+                # Transform button
                 if st.button("🎨 Transform My Photo!", type="primary", use_container_width=True):
+                    # Clear previous results
                     st.session_state.styled_image_bytes = None
-                    with st.spinner("Analyzing your photo..."):
-                        description, error = analyze_image_with_gpt4_vision(original_image)
                     
-                    if error:
-                        st.error(f"❌ {error}")
-                    else:
-                        with st.spinner(f"Generating {style['name']} version..."):
-                            styled_image, error = style_transfer_with_dalle3(description, style['prompt'])
+                    with st.spinner("🔍 Analyzing your photo..."):
+                        image_description, error = analyze_image_with_gpt4_vision(original_image)
                         
                         if error:
                             st.error(f"❌ {error}")
                         else:
-                            buffer = io.BytesIO()
-                            styled_image.save(buffer, format="PNG")
-                            st.session_state.styled_image_bytes = buffer.getvalue()
-                            st.success("✅ Transformation complete!")
+                            with st.spinner(f"🎨 Generating {current_style['name']} version..."):
+                                stylized_image, error = style_transfer_with_dalle3(
+                                    image_description,
+                                    current_style['prompt']
+                                )
+                                
+                                if stylized_image and not error:
+                                    # Store image as bytes in session state
+                                    buffer = io.BytesIO()
+                                    stylized_image.save(buffer, format="PNG")
+                                    st.session_state.styled_image_bytes = buffer.getvalue()
+                                    st.success("✅ Transformation complete!")
+                                else:
+                                    st.error(f"❌ {error}")
                 
+                # Display result and download options
                 if st.session_state.get('styled_image_bytes'):
+                    st.markdown('<div class="image-container">', unsafe_allow_html=True)
                     st.image(st.session_state.styled_image_bytes, use_container_width=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
                     
-                    image_to_save = Image.open(io.BytesIO(st.session_state.styled_image_bytes))
-                    # ✅ FIXED: Updated function name to match
-                    _, filename, public_url = save_image_to_static(image_to_save, selected_key)
+                    # Create download options
+                    download_link, qr_image, filename = create_download_options(
+                        st.session_state.styled_image_bytes, 
+                        st.session_state.selected_style
+                    )
                     
-                    if public_url:
-                        st.markdown("### 📱 Scan to Download")
-                        qr_image = create_download_qr(public_url)
-                        if qr_image:
-                            st.image(qr_image, width=250)
-                            st.markdown(f"**{filename}**")
-                            st.code(public_url, language=None)
-                            
+                    st.markdown("### 📥 Download Options")
+                    
+                    # Method 1: Streamlit's built-in download button (always works)
+                    st.download_button(
+                        label="💾 Download PNG",
+                        data=st.session_state.styled_image_bytes,
+                        file_name=filename,
+                        mime="image/png",
+                        use_container_width=True
+                    )
+                    
+                    # Method 2: HTML download link (works in most browsers)
+                    if download_link:
+                        st.markdown(download_link, unsafe_allow_html=True)
+                    
+                    # Method 3: QR code for mobile devices
+                    if qr_image:
+                        st.markdown("### 📱 Scan QR Code")
+                        st.markdown('<div class="qr-container">', unsafe_allow_html=True)
+                        st.image(qr_image, width=250)
+                        st.markdown("**Scan with your phone to download**")
+                        st.caption("QR code contains the image data directly")
+                        st.markdown('</div>', unsafe_allow_html=True)
+        
         except Exception as e:
-            st.error(f"❌ An unexpected error occurred: {e}")
+            st.error(f"❌ Error processing image: {str(e)}")
+            logger.error(f"Image processing error: {e}")
+
 else:
-    st.info("👆 Take a photo or upload an image to begin.")
+    st.info("👆 Take a photo or upload an image to begin transformation")
+
+# Footer with security info
+st.markdown("---")
+st.markdown(
+    """
+    <div style='text-align: center; color: #7F8C8D; font-size: 1rem; margin-top: 2rem;'>
+        🔒 Secure AI Style Transfer • 🤖 GPT-4 Vision + DALL-E 3<br>
+        🛡️ API Keys Protected • 📱 Multiple Download Options Available
+    </div>
+    """,
+    unsafe_allow_html=True
+)
