@@ -100,27 +100,26 @@ if not AWS_BUCKET_NAME:
     st.error("❌ **AWS_BUCKET_NAME not configured.** Please set it in secrets.")
     st.stop()
 
-# Style prompts
 STYLE_PROMPTS = {
     "anime": {
-        "name": "Anime",
-        "prompt": "Create an image in anime/manga art style with the same composition, pose, and facial features as the reference image."
+        "name": "📖 Anime",  # CHANGED: Updated emoji from 🎌 to 📖
+        "prompt": "Create an image in anime/manga art style with the same composition, pose, and facial features as the reference image. Use cel-shaded coloring, bold black outlines, vibrant saturated colors, large expressive eyes typical of Japanese animation, and smooth gradients."
     },
     "ghibli": {
-        "name": "Ghibli", 
-        "prompt": "Create a Studio Ghibli style image with soft watercolor-like textures and whimsical atmosphere."
+        "name": "🌿 Ghibli",
+        "prompt": "Create a Studio Ghibli style image with soft watercolor-like textures, gentle pastel colors, whimsical and dreamy atmosphere, hand-drawn animation quality, natural organic shapes, and the characteristic Miyazaki aesthetic."
     },
     "fantasy": {
-        "name": "Fantasy",
-        "prompt": "Create an image in fantasy art style with magical atmosphere and mystical lighting."
+        "name": "🧙‍♂️ Fantasy",
+        "prompt": "Create an image in fantasy art style with the same composition, pose, and facial features as the reference image. Add magical atmosphere with mystical lighting, rich colors with golden highlights, ornate fantasy details."
     },
     "cyberpunk": {
-        "name": "Cyberpunk",
-        "prompt": "Create a cyberpunk style image with neon colors and futuristic elements."
+        "name": "🤖 Cyberpunk",
+        "prompt": "Create a cyberpunk style image with neon colors, futuristic elements, high contrast lighting, and sci-fi aesthetic, while maintaining the original composition and pose."
     },
     "photorealistic": {
-        "name": "Realistic",
-        "prompt": "Create a photorealistic version with professional lighting and sharp details."
+        "name": "📸 Realistic",
+        "prompt": "Create a photorealistic version with professional lighting, sharp details, realistic textures, and cinematic quality. Maintain the exact same pose, facial features, and scene layout."
     }
 }
 
