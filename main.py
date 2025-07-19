@@ -103,23 +103,23 @@ if not AWS_BUCKET_NAME:
 # Style prompts
 STYLE_PROMPTS = {
     "anime": {
-        "name": "🎌 Anime",
+        "name": "Anime",
         "prompt": "Create an image in anime/manga art style with the same composition, pose, and facial features as the reference image."
     },
     "ghibli": {
-        "name": "🌿 Ghibli", 
+        "name": "Ghibli", 
         "prompt": "Create a Studio Ghibli style image with soft watercolor-like textures and whimsical atmosphere."
     },
     "fantasy": {
-        "name": "🧙‍♂️ Fantasy",
+        "name": "Fantasy",
         "prompt": "Create an image in fantasy art style with magical atmosphere and mystical lighting."
     },
     "cyberpunk": {
-        "name": "🤖 Cyberpunk",
+        "name": "Cyberpunk",
         "prompt": "Create a cyberpunk style image with neon colors and futuristic elements."
     },
     "photorealistic": {
-        "name": "📸 Realistic",
+        "name": "Realistic",
         "prompt": "Create a photorealistic version with professional lighting and sharp details."
     }
 }
