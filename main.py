@@ -30,111 +30,98 @@ st.set_page_config(
 
 # [Keep your existing CSS styling here]
 # Comprehensive footer removal for mobile devices
+# Mobile-optimized footer removal without sticky positioning
 st.markdown("""
 <style>
-    /* Hide all possible footer variations */
+    /* Standard footer hiding without viewport manipulation */
     footer, 
     .stApp > footer, 
     footer[data-testid="stFooter"],
-    .stApp > .main > .block-container + footer,
-    .css-footerContainer,
-    .css-1dp5vir,
     div[data-testid="stBottom"] {
         display: none !important;
         visibility: hidden !important;
         height: 0 !important;
-        opacity: 0 !important;
-        position: absolute !important;
-        top: -9999px !important;
-        left: -9999px !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     
-    /* Mobile-specific targeting */
+    /* Mobile-specific without fixed positioning */
     @media screen and (max-width: 768px) {
-        /* Target mobile footer specifically */
         footer,
-        .stApp footer,
-        [data-testid="stFooter"],
-        .main footer,
-        .block-container + footer {
+        [data-testid="stFooter"] {
             display: none !important;
             visibility: hidden !important;
             height: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
+            line-height: 0 !important;
+            font-size: 0 !important;
         }
         
-        /* Remove any bottom spacing */
+        /* Remove footer space without affecting layout */
         .main .block-container {
-            padding-bottom: 0rem !important;
-            margin-bottom: 0rem !important;
+            padding-bottom: 1rem !important;
         }
         
-        /* Force hide any remaining elements */
-        *[class*="footer" i],
-        *[class*="streamlit" i] {
+        /* Target any remaining footer text */
+        footer * {
             display: none !important;
         }
+    }
+    
+    /* Hide elements containing streamlit text */
+    *:contains("Streamlit"),
+    *:contains("streamlit"),
+    *:contains("Hosted by") {
+        display: none !important;
     }
 </style>
 
 <script>
-    function aggressiveFooterRemoval() {
-        // More comprehensive selectors for mobile
-        const footerSelectors = [
-            'footer',
-            '[data-testid="stFooter"]',
-            '.css-1dp5vir',
-            '.css-footerContainer',
-            'div[data-testid="stBottom"]',
-            '.stApp > footer',
-            '.main > footer',
-            '.block-container + footer'
-        ];
-        
-        footerSelectors.forEach(selector => {
-            const elements = document.querySelectorAll(selector);
-            elements.forEach(element => {
-                element.style.display = 'none';
-                element.style.visibility = 'hidden';
-                element.style.height = '0';
-                element.style.opacity = '0';
-                element.remove();
-            });
+    function removeFooterContent() {
+        // Target footer elements and their content
+        const footers = document.querySelectorAll('footer, [data-testid="stFooter"]');
+        footers.forEach(footer => {
+            // Remove content instead of repositioning
+            footer.innerHTML = '';
+            footer.style.display = 'none';
+            footer.style.height = '0px';
+            footer.style.margin = '0px';
+            footer.style.padding = '0px';
         });
         
-        // Also remove any elements containing "streamlit" text
-        const allElements = document.querySelectorAll('*');
-        allElements.forEach(element => {
-            if (element.textContent && 
-                (element.textContent.toLowerCase().includes('streamlit') || 
-                 element.textContent.toLowerCase().includes('hosted by'))) {
-                element.style.display = 'none';
-                element.remove();
+        // Remove any text nodes containing streamlit references
+        const walker = document.createTreeWalker(
+            document.body,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+        );
+        
+        let textNode;
+        const nodesToRemove = [];
+        while (textNode = walker.nextNode()) {
+            if (textNode.textContent.toLowerCase().includes('streamlit') || 
+                textNode.textContent.toLowerCase().includes('hosted by')) {
+                nodesToRemove.push(textNode.parentElement);
+            }
+        }
+        
+        nodesToRemove.forEach(node => {
+            if (node) {
+                node.style.display = 'none';
+                node.remove();
             }
         });
     }
     
-    // Run multiple times to catch dynamic content
-    document.addEventListener('DOMContentLoaded', aggressiveFooterRemoval);
-    setTimeout(aggressiveFooterRemoval, 100);
-    setTimeout(aggressiveFooterRemoval, 500);
-    setTimeout(aggressiveFooterRemoval, 1000);
-    setTimeout(aggressiveFooterRemoval, 2000);
+    // Run after DOM loads and periodically on mobile
+    document.addEventListener('DOMContentLoaded', removeFooterContent);
     
-    // Continuous monitoring for mobile
-    if (window.innerWidth <= 768) {
-        setInterval(aggressiveFooterRemoval, 1000);
+    // Only run interval on mobile to avoid performance issues
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        setTimeout(removeFooterContent, 100);
+        setTimeout(removeFooterContent, 1000);
+        setInterval(removeFooterContent, 2000);
     }
-    
-    // Observer for dynamic changes
-    const observer = new MutationObserver(aggressiveFooterRemoval);
-    observer.observe(document.body, { 
-        childList: true, 
-        subtree: true,
-        attributes: true,
-        attributeOldValue: true
-    });
 </script>
 """, unsafe_allow_html=True)
 
