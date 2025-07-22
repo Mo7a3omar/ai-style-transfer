@@ -32,11 +32,61 @@ st.set_page_config(
 # Remove Streamlit branding
 st.markdown("""
 <style>
-    footer {visibility: hidden;}
-    .stApp > footer {visibility: hidden;}
-    footer[data-testid="stFooter"] {display: none !important;}
-    .css-1dp5vir {visibility: hidden;}
-    .css-footerContent {display: none !important;}
+    /* Hide all footer elements */
+    footer {
+        visibility: hidden !important;
+        height: 0 !important;
+        position: relative !important;
+    }
+    
+    /* Target Streamlit's footer specifically */
+    .stApp > footer {
+        visibility: hidden !important;
+        height: 0 !important;
+        position: relative !important;
+    }
+    
+    /* Modern Streamlit footer selectors */
+    footer[data-testid="stFooter"] {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+    }
+    
+    /* Additional selectors for mobile */
+    .css-1dp5vir {
+        visibility: hidden !important;
+        height: 0 !important;
+    }
+    
+    /* Mobile-specific overrides */
+    @media (max-width: 768px) {
+        footer {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            opacity: 0 !important;
+        }
+        
+        .stApp > footer {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            opacity: 0 !important;
+        }
+        
+        footer[data-testid="stFooter"] {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            opacity: 0 !important;
+        }
+    }
+    
+    /* Force remove any remaining footer space */
+    .main .block-container {
+        padding-bottom: 1rem !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
