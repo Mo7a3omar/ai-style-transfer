@@ -198,24 +198,24 @@ if not AWS_BUCKET_NAME:
 
 STYLE_PROMPTS = {
     "anime": {
-        "name": "📖 Anime",  # CHANGED: Updated emoji from 🎌 to 📖
-        "prompt": "Create an image in anime/manga art style with the same composition, pose, and facial features as the reference image. Use cel-shaded coloring, bold black outlines, vibrant saturated colors, large expressive eyes typical of Japanese animation, and smooth gradients."
+        "name": "📖 Anime",
+        "prompt": "Transform this image into anime/manga art style while preserving EXACTLY the same composition, pose, body positioning, facial expression, eye direction, hand placement, and all spatial relationships. Maintain identical clothing details, accessories, and background elements. Apply cel-shaded coloring, bold black outlines, vibrant saturated colors, and large expressive anime-style eyes. Keep all proportions and positioning precisely as shown in the reference."
     },
     "ghibli": {
         "name": "🌿 Ghibli",
-        "prompt": "Create a Studio Ghibli style image with soft watercolor-like textures, gentle pastel colors, whimsical and dreamy atmosphere, hand-drawn animation quality, natural organic shapes, and the characteristic Miyazaki aesthetic."
+        "prompt": "Recreate this image in Studio Ghibli style while maintaining EXACT pose, facial features, body position, clothing details, and background layout. Preserve all spatial relationships and compositional elements identically. Apply soft watercolor-like textures, gentle pastel colors, whimsical atmosphere, hand-drawn animation quality, and characteristic Miyazaki aesthetic without altering any positioning or details from the original."
     },
     "fantasy": {
         "name": "🧙‍♂️ Fantasy",
-        "prompt": "Create an image in fantasy art style with the same composition, pose, and facial features as the reference image. Add magical atmosphere with mystical lighting, rich colors with golden highlights, ornate fantasy details."
+        "prompt": "Transform into fantasy art style while keeping IDENTICAL composition, pose, facial expression, body positioning, clothing, and background elements. Maintain exact spatial relationships and all visual details from the reference. Add magical atmosphere with mystical lighting, rich colors with golden highlights, and ornate fantasy details as overlays without changing core image structure."
     },
     "cyberpunk": {
         "name": "🤖 Cyberpunk",
-        "prompt": "Create a cyberpunk style image with neon colors, futuristic elements, high contrast lighting, and sci-fi aesthetic, while maintaining the original composition and pose."
+        "prompt": "Convert to cyberpunk style while preserving EXACTLY the same pose, facial features, body position, clothing details, and background composition. Keep all spatial relationships and positioning identical to the reference. Apply neon colors, futuristic lighting effects, high contrast, and sci-fi aesthetic elements without altering the fundamental image structure."
     },
     "photorealistic": {
         "name": "📸 Realistic",
-        "prompt": "Create a photorealistic version with professional lighting, sharp details, realistic textures, and cinematic quality. Maintain the exact same pose, facial features, and scene layout."
+        "prompt": "Create a photorealistic version maintaining PRECISELY the same pose, facial expression, body positioning, clothing, background, and all compositional elements. Keep identical spatial relationships, eye direction, hand placement, and every detail from the reference. Apply professional lighting, sharp details, realistic textures, and cinematic quality while changing nothing about the core image structure."
     }
 }
 
