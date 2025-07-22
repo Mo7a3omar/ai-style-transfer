@@ -29,65 +29,113 @@ st.set_page_config(
 )
 
 # [Keep your existing CSS styling here]
-# Remove Streamlit branding
+# Comprehensive footer removal for mobile devices
 st.markdown("""
 <style>
-    /* Hide all footer elements */
-    footer {
-        visibility: hidden !important;
-        height: 0 !important;
-        position: relative !important;
-    }
-    
-    /* Target Streamlit's footer specifically */
-    .stApp > footer {
-        visibility: hidden !important;
-        height: 0 !important;
-        position: relative !important;
-    }
-    
-    /* Modern Streamlit footer selectors */
-    footer[data-testid="stFooter"] {
+    /* Hide all possible footer variations */
+    footer, 
+    .stApp > footer, 
+    footer[data-testid="stFooter"],
+    .stApp > .main > .block-container + footer,
+    .css-footerContainer,
+    .css-1dp5vir,
+    div[data-testid="stBottom"] {
         display: none !important;
         visibility: hidden !important;
         height: 0 !important;
+        opacity: 0 !important;
+        position: absolute !important;
+        top: -9999px !important;
+        left: -9999px !important;
     }
     
-    /* Additional selectors for mobile */
-    .css-1dp5vir {
-        visibility: hidden !important;
-        height: 0 !important;
-    }
-    
-    /* Mobile-specific overrides */
-    @media (max-width: 768px) {
-        footer {
+    /* Mobile-specific targeting */
+    @media screen and (max-width: 768px) {
+        /* Target mobile footer specifically */
+        footer,
+        .stApp footer,
+        [data-testid="stFooter"],
+        .main footer,
+        .block-container + footer {
             display: none !important;
             visibility: hidden !important;
             height: 0 !important;
-            opacity: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
         
-        .stApp > footer {
-            display: none !important;
-            visibility: hidden !important;
-            height: 0 !important;
-            opacity: 0 !important;
+        /* Remove any bottom spacing */
+        .main .block-container {
+            padding-bottom: 0rem !important;
+            margin-bottom: 0rem !important;
         }
         
-        footer[data-testid="stFooter"] {
+        /* Force hide any remaining elements */
+        *[class*="footer" i],
+        *[class*="streamlit" i] {
             display: none !important;
-            visibility: hidden !important;
-            height: 0 !important;
-            opacity: 0 !important;
         }
-    }
-    
-    /* Force remove any remaining footer space */
-    .main .block-container {
-        padding-bottom: 1rem !important;
     }
 </style>
+
+<script>
+    function aggressiveFooterRemoval() {
+        // More comprehensive selectors for mobile
+        const footerSelectors = [
+            'footer',
+            '[data-testid="stFooter"]',
+            '.css-1dp5vir',
+            '.css-footerContainer',
+            'div[data-testid="stBottom"]',
+            '.stApp > footer',
+            '.main > footer',
+            '.block-container + footer'
+        ];
+        
+        footerSelectors.forEach(selector => {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(element => {
+                element.style.display = 'none';
+                element.style.visibility = 'hidden';
+                element.style.height = '0';
+                element.style.opacity = '0';
+                element.remove();
+            });
+        });
+        
+        // Also remove any elements containing "streamlit" text
+        const allElements = document.querySelectorAll('*');
+        allElements.forEach(element => {
+            if (element.textContent && 
+                (element.textContent.toLowerCase().includes('streamlit') || 
+                 element.textContent.toLowerCase().includes('hosted by'))) {
+                element.style.display = 'none';
+                element.remove();
+            }
+        });
+    }
+    
+    // Run multiple times to catch dynamic content
+    document.addEventListener('DOMContentLoaded', aggressiveFooterRemoval);
+    setTimeout(aggressiveFooterRemoval, 100);
+    setTimeout(aggressiveFooterRemoval, 500);
+    setTimeout(aggressiveFooterRemoval, 1000);
+    setTimeout(aggressiveFooterRemoval, 2000);
+    
+    // Continuous monitoring for mobile
+    if (window.innerWidth <= 768) {
+        setInterval(aggressiveFooterRemoval, 1000);
+    }
+    
+    // Observer for dynamic changes
+    const observer = new MutationObserver(aggressiveFooterRemoval);
+    observer.observe(document.body, { 
+        childList: true, 
+        subtree: true,
+        attributes: true,
+        attributeOldValue: true
+    });
+</script>
 """, unsafe_allow_html=True)
 
 # Initialize session state
