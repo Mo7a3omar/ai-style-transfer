@@ -13,6 +13,7 @@ from botocore.exceptions import ClientError
 import ssl
 import urllib3
 
+
 # Disable SSL warnings for development (remove in production)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -28,6 +29,16 @@ st.set_page_config(
 )
 
 # [Keep your existing CSS styling here]
+# Remove Streamlit branding
+st.markdown("""
+<style>
+    footer {visibility: hidden;}
+    .stApp > footer {visibility: hidden;}
+    footer[data-testid="stFooter"] {display: none !important;}
+    .css-1dp5vir {visibility: hidden;}
+    .css-footerContent {display: none !important;}
+</style>
+""", unsafe_allow_html=True)
 
 # Initialize session state
 if 'current_page' not in st.session_state:
@@ -214,6 +225,7 @@ def style_transfer_with_dalle3(description, style_prompt):
 
 # Page Rendering Functions
 def render_style_selection_page():
+    st.markdown('<h1 class="main-header">Welcome to Holomagic.AI</h1>', unsafe_allow_html=True)
     st.markdown('<h1 class="main-header">Choose Your AI Style</h1>', unsafe_allow_html=True)
     st.markdown('<p class="page-indicator">Step 1 of 3: Select a Style</p>', unsafe_allow_html=True)
     
