@@ -199,25 +199,26 @@ if not AWS_BUCKET_NAME:
 STYLE_PROMPTS = {
     "anime": {
         "name": "📖 Anime",
-        "prompt": "Transform this image into anime/manga art style while preserving EXACTLY the same composition, pose, body positioning, facial expression, eye direction, hand placement, and all spatial relationships. Maintain identical clothing details, accessories, and background elements. Apply cel-shaded coloring, bold black outlines, vibrant saturated colors, and large expressive anime-style eyes. Keep all proportions and positioning precisely as shown in the reference."
+        "prompt": "In vibrant anime style: cel-shaded, bold lines, expressive eyes, and bright colors."
     },
     "ghibli": {
         "name": "🌿 Ghibli",
-        "prompt": "Recreate this image in Studio Ghibli style while maintaining EXACT pose, facial features, body position, clothing details, and background layout. Preserve all spatial relationships and compositional elements identically. Apply soft watercolor-like textures, gentle pastel colors, whimsical atmosphere, hand-drawn animation quality, and characteristic Miyazaki aesthetic without altering any positioning or details from the original."
+        "prompt": "Studio Ghibli style: hand-painted look, soft colors, gentle shading, whimsical animation."
     },
     "fantasy": {
         "name": "🧙‍♂️ Fantasy",
-        "prompt": "Transform into fantasy art style while keeping IDENTICAL composition, pose, facial expression, body positioning, clothing, and background elements. Maintain exact spatial relationships and all visual details from the reference. Add magical atmosphere with mystical lighting, rich colors with golden highlights, and ornate fantasy details as overlays without changing core image structure."
+        "prompt": "Fantasy illustration style: magical lighting, rich colors, ornate and enchanting aesthetic."
     },
     "cyberpunk": {
         "name": "🤖 Cyberpunk",
-        "prompt": "Convert to cyberpunk style while preserving EXACTLY the same pose, facial features, body position, clothing details, and background composition. Keep all spatial relationships and positioning identical to the reference. Apply neon colors, futuristic lighting effects, high contrast, and sci-fi aesthetic elements without altering the fundamental image structure."
+        "prompt": "Cyberpunk style: neon colors, futuristic lighting, high contrast, sci-fi atmosphere."
     },
     "photorealistic": {
         "name": "📸 Realistic",
-        "prompt": "Create a photorealistic version maintaining PRECISELY the same pose, facial expression, body positioning, clothing, background, and all compositional elements. Keep identical spatial relationships, eye direction, hand placement, and every detail from the reference. Apply professional lighting, sharp details, realistic textures, and cinematic quality while changing nothing about the core image structure."
+        "prompt": "Ultra-photorealistic, cinematic lighting, crisp details, natural colors."
     }
 }
+
 
 def upload_image_to_s3(image_bytes, style_name):
     """Upload image to S3 and return public URL"""
