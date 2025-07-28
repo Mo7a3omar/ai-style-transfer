@@ -330,21 +330,21 @@ def render_style_selection_page():
 def render_image_capture_page():
     st.markdown('<h1 class="main-header">Take Your Photo</h1>', unsafe_allow_html=True)
     st.markdown('<p class="page-indicator">Step 2 of 3: Capture Your Image</p>', unsafe_allow_html=True)
-    
+
     if st.session_state.selected_style:
-    style_info = STYLE_PROMPTS[st.session_state.selected_style]
-    st.success(f"Selected Style: {style_info['name']}")
-    
+        style_info = STYLE_PROMPTS[st.session_state.selected_style]
+        st.success(f"Selected Style: {style_info['name']}")
+
     camera_photo = st.camera_input("📸 Position yourself and take a selfie")
     
     if camera_photo:
-    st.session_state.captured_image_bytes = camera_photo.getvalue()
-    st.session_state.current_page = 'result_display'
-    st.rerun()
-    
+        st.session_state.captured_image_bytes = camera_photo.getvalue()
+        st.session_state.current_page = 'result_display'
+        st.rerun()
+
     if st.button("← Back to Style Selection", use_container_width=True):
-    st.session_state.current_page = 'style_selection'
-    st.rerun()
+        st.session_state.current_page = 'style_selection'
+        st.rerun()
 
 def render_results_page():
     st.markdown('<h1 class="main-header">Your AI Masterpiece</h1>', unsafe_allow_html=True)
