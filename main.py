@@ -73,6 +73,48 @@ st.markdown("""
     *:contains("Hosted by") {
         display: none !important;
     }
+
+        html, body, .stApp {
+        height: 100% !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .block-container, .main, section[tabindex="0"] {
+        height: 100% !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+    .element-container, .stButton, .stCameraInput, .stImage, .stColumn, .stDownloadButton, .stMarkdown {
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+    }
+    /* Hide Streamlit's built-in scrollbars */
+    ::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        background: transparent !important;
+    }
+    /* Hide vertical/horizontal overflow from Streamlit columns on mobile */
+    @media (max-width: 950px) {
+        .stColumns {
+            flex-direction: column !important;
+            max-width: 100vw !important;
+        }
+    }
+    /* For smallest screens, use even less padding */
+    @media (max-width: 650px) {
+        .block-container, .main,
+        .stMarkdown, .stImage, .stButton, .stDownloadButton, .element-container {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+    }
 </style>
 
 <script>
