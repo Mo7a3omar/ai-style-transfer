@@ -13,7 +13,6 @@ from botocore.exceptions import ClientError
 import ssl
 import urllib3
 
-
 # Disable SSL warnings for development (remove in production)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -28,91 +27,57 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# [Keep your existing CSS styling here]
-# Comprehensive footer removal for mobile devices
-# Mobile-optimized footer removal without sticky positioning
+# Responsive CSS for various screen sizes - no cropping, no fixed heights, dynamic widths
 st.markdown("""
 <style>
-    /* Standard footer hiding without viewport manipulation */
-    footer, 
-    .stApp > footer, 
-    footer[data-testid="stFooter"],
-    div[data-testid="stBottom"] {
+    footer, .stApp > footer, footer[data-testid="stFooter"], div[data-testid="stBottom"] {
         display: none !important;
         visibility: hidden !important;
         height: 0 !important;
         margin: 0 !important;
         padding: 0 !important;
     }
-    
-    /* Mobile-specific without fixed positioning */
     @media screen and (max-width: 768px) {
-        footer,
-        [data-testid="stFooter"] {
+        footer, [data-testid="stFooter"] {
             display: none !important;
             visibility: hidden !important;
             height: 0 !important;
             line-height: 0 !important;
             font-size: 0 !important;
         }
-        
-        /* Remove footer space without affecting layout */
         .main .block-container {
             padding-bottom: 1rem !important;
         }
-        
-        /* Target any remaining footer text */
         footer * {
             display: none !important;
         }
     }
-    
-    /* Hide elements containing streamlit text */
     *:contains("Streamlit"),
     *:contains("streamlit"),
     *:contains("Hosted by") {
         display: none !important;
     }
-
-        html, body, .stApp {
-        height: 100% !important;
-        max-height: 100vh !important;
-        overflow: hidden !important;
+    html, body, .stApp {
+        width: 100vw !important;
+        min-height: 100vh !important;
+        max-width: 100vw !important;
         margin: 0 !important;
         padding: 0 !important;
     }
-    .block-container, .main, section[tabindex="0"] {
-        height: 100% !important;
-        max-height: 100vh !important;
-        overflow: hidden !important;
+    .block-container, .main {
+        width: 100vw !important;
+        max-width: 100vw !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 0 0.5rem !important;
         box-sizing: border-box !important;
     }
-    .element-container, .stButton, .stCameraInput, .stImage, .stColumn, .stDownloadButton, .stMarkdown {
+    .element-container, .stButton, .stCameraInput, .stImage, .stDownloadButton, .stMarkdown {
         max-width: 100vw !important;
-        max-height: 100vh !important;
-        overflow: hidden !important;
     }
-    /* Hide Streamlit's built-in scrollbars */
-    ::-webkit-scrollbar {
-        display: none !important;
-        width: 0 !important;
-        background: transparent !important;
-    }
-    /* Hide vertical/horizontal overflow from Streamlit columns on mobile */
-    @media (max-width: 950px) {
+    @media (max-width: 800px) {
         .stColumns {
             flex-direction: column !important;
             max-width: 100vw !important;
-        }
-    }
-    /* For smallest screens, use even less padding */
-    @media (max-width: 650px) {
-        .block-container, .main,
-        .stMarkdown, .stImage, .stButton, .stDownloadButton, .element-container {
-            padding: 0 !important;
-            margin: 0 !important;
         }
     }
 </style>
@@ -122,22 +87,18 @@ st.markdown("""
         // Target footer elements and their content
         const footers = document.querySelectorAll('footer, [data-testid="stFooter"]');
         footers.forEach(footer => {
-            // Remove content instead of repositioning
             footer.innerHTML = '';
             footer.style.display = 'none';
             footer.style.height = '0px';
             footer.style.margin = '0px';
             footer.style.padding = '0px';
         });
-        
-        // Remove any text nodes containing streamlit references
         const walker = document.createTreeWalker(
             document.body,
             NodeFilter.SHOW_TEXT,
             null,
             false
         );
-        
         let textNode;
         const nodesToRemove = [];
         while (textNode = walker.nextNode()) {
@@ -146,7 +107,6 @@ st.markdown("""
                 nodesToRemove.push(textNode.parentElement);
             }
         }
-        
         nodesToRemove.forEach(node => {
             if (node) {
                 node.style.display = 'none';
@@ -154,11 +114,7 @@ st.markdown("""
             }
         });
     }
-    
-    // Run after DOM loads and periodically on mobile
     document.addEventListener('DOMContentLoaded', removeFooterContent);
-    
-    // Only run interval on mobile to avoid performance issues
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
         setTimeout(removeFooterContent, 100);
         setTimeout(removeFooterContent, 1000);
@@ -180,17 +136,13 @@ if 'stylized_image_bytes' not in st.session_state:
 # AWS and OpenAI Client Initialization
 @st.cache_resource
 def init_aws_client():
-    """Initialize AWS S3 client with proper SSL configuration"""
     try:
         aws_access_key = os.getenv('AWS_ACCESS_KEY_ID') or st.secrets.get('AWS_ACCESS_KEY_ID')
         aws_secret_key = os.getenv('AWS_SECRET_ACCESS_KEY') or st.secrets.get('AWS_SECRET_ACCESS_KEY')
         aws_region = os.getenv('AWS_REGION') or st.secrets.get('AWS_REGION', 'ap-southeast-2')
-        
         if not aws_access_key or not aws_secret_key:
             st.error("🔑 **AWS credentials not found.** Please configure AWS keys in secrets.")
             st.stop()
-        
-        # Create S3 client with proper configuration
         s3_client = boto3.client(
             's3',
             aws_access_key_id=aws_access_key,
@@ -202,19 +154,15 @@ def init_aws_client():
                 max_pool_connections=50
             )
         )
-        
-        # Test connection
         s3_client.list_buckets()
         logger.info(f"S3 client initialized successfully for region: {aws_region}")
         return s3_client
-        
     except Exception as e:
         st.error(f"❌ **AWS Client Error:** {e}")
         st.stop()
 
 @st.cache_resource
 def init_openai_client():
-    """Initialize OpenAI client"""
     try:
         api_key = os.getenv('OPENAI_API_KEY') or st.secrets.get('OPENAI_API_KEY')
         if not api_key:
@@ -230,7 +178,6 @@ def init_openai_client():
 s3_client = init_aws_client()
 openai_client = init_openai_client()
 
-# Configuration
 AWS_BUCKET_NAME = os.getenv('AWS_BUCKET_NAME') or st.secrets.get('AWS_BUCKET_NAME')
 AWS_REGION = os.getenv('AWS_REGION') or st.secrets.get('AWS_REGION', 'ap-southeast-2')
 
@@ -261,40 +208,29 @@ STYLE_PROMPTS = {
     }
 }
 
-
 def upload_image_to_s3(image_bytes, style_name):
-    """Upload image to S3 and return public URL"""
     try:
-        # Generate unique filename
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f"styled_{style_name}_{timestamp}.png"
-        
-        # Create organized S3 key structure
         year = datetime.now().strftime('%Y')
         month = datetime.now().strftime('%m')
         day = datetime.now().strftime('%d')
         s3_key = f"styled-images/{year}/{month}/{day}/{filename}"
-        
-        # Upload to S3 with proper metadata
         s3_client.put_object(
             Bucket=AWS_BUCKET_NAME,
             Key=s3_key,
             Body=image_bytes,
             ContentType='image/png',
-            CacheControl='max-age=31536000',  # 1 year cache
+            CacheControl='max-age=31536000',
             Metadata={
                 'style': style_name,
                 'created': timestamp,
                 'app': 'ai-style-transfer'
             }
         )
-        
-        # Generate public URL
         public_url = f"https://{AWS_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{s3_key}"
-        
         logger.info(f"Image uploaded successfully: {s3_key}")
         return public_url, filename
-        
     except ClientError as e:
         error_code = e.response['Error']['Code']
         logger.error(f"S3 upload failed with error code {error_code}: {e}")
@@ -304,7 +240,6 @@ def upload_image_to_s3(image_bytes, style_name):
         return None, None
 
 def create_qr_code_with_url(image_url):
-    """Create QR code that links to the S3 hosted image"""
     try:
         qr = segno.make(image_url, error='M')
         qr_buffer = io.BytesIO()
@@ -316,7 +251,6 @@ def create_qr_code_with_url(image_url):
         return None
 
 def analyze_image_with_gpt4_vision(image_bytes):
-    """Uses GPT-4 Vision to create a text description"""
     try:
         b64_image = base64.b64encode(image_bytes).decode()
         response = openai_client.chat.completions.create(
@@ -335,7 +269,6 @@ def analyze_image_with_gpt4_vision(image_bytes):
         return None, f"Image analysis failed: {e}"
 
 def style_transfer_with_dalle3(description, style_prompt):
-    """Uses DALL-E 3 to generate a new image"""
     try:
         full_prompt = f"{style_prompt}\n\nScene: {description}"[:4000]
         response = openai_client.images.generate(
@@ -356,7 +289,7 @@ def render_style_selection_page():
     st.markdown('<h1 class="main-header">Welcome to Holomagic.AI</h1>', unsafe_allow_html=True)
     st.markdown('<h1 class="main-header">Choose Your AI Style</h1>', unsafe_allow_html=True)
     st.markdown('<p class="page-indicator">Step 1 of 3: Select a Style</p>', unsafe_allow_html=True)
-    
+
     cols = st.columns(len(STYLE_PROMPTS))
     for i, (style_key, style_info) in enumerate(STYLE_PROMPTS.items()):
         with cols[i]:
@@ -373,8 +306,8 @@ def render_image_capture_page():
         style_info = STYLE_PROMPTS[st.session_state.selected_style]
         st.success(f"Selected Style: {style_info['name']}")
 
-    camera_photo = st.camera_input("📸 Position yourself and take a selfie")
-    
+    camera_photo = st.camera_input("📸 Position yourself and take a selfie", use_container_width=True)
+
     if camera_photo:
         st.session_state.captured_image_bytes = camera_photo.getvalue()
         st.session_state.current_page = 'result_display'
@@ -402,40 +335,36 @@ def render_results_page():
             if error:
                 st.error(f"❌ {error}")
                 return
-            
-            # Convert to bytes
+
             buffer = io.BytesIO()
             stylized_image.save(buffer, format="PNG")
             st.session_state.stylized_image_bytes = buffer.getvalue()
 
-    # Display generated image
     st.image(st.session_state.stylized_image_bytes, use_container_width=True)
 
-    # Upload to S3 and create QR code
     col1, col2 = st.columns([2, 1])
-    
+
     with col1:
         if st.button("🔄 Create Another", use_container_width=True):
-            # Reset session state
             for key in ['selected_style', 'captured_image_bytes', 'stylized_image_bytes']:
                 if key in st.session_state:
                     del st.session_state[key]
             st.session_state.current_page = 'style_selection'
             st.rerun()
-    
+
     with col2:
         with st.spinner("📤 Uploading to cloud..."):
             image_url, filename = upload_image_to_s3(
                 st.session_state.stylized_image_bytes,
                 st.session_state.selected_style
             )
-        
+
         if image_url:
             qr_image = create_qr_code_with_url(image_url)
             if qr_image:
                 st.markdown('<div class="qr-section">', unsafe_allow_html=True)
                 st.markdown("### 📱 Scan to Download")
-                st.image(qr_image, width=200)
+                st.image(qr_image, use_container_width=True)
                 st.markdown("**Scan with your phone**")
                 st.download_button(
                     label="⬇️ Download Image",
