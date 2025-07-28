@@ -134,6 +134,10 @@ if 'captured_image_bytes' not in st.session_state:
     st.session_state.captured_image_bytes = None
 if 'stylized_image_bytes' not in st.session_state:
     st.session_state.stylized_image_bytes = None
+if 'show_timer' not in st.session_state:
+    st.session_state.show_timer = False
+if 'timer_start' not in st.session_state:
+    st.session_state.timer_start = None
 
 # AWS and OpenAI Client Initialization
 @st.cache_resource
