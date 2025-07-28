@@ -134,10 +134,6 @@ if 'captured_image_bytes' not in st.session_state:
     st.session_state.captured_image_bytes = None
 if 'stylized_image_bytes' not in st.session_state:
     st.session_state.stylized_image_bytes = None
-if 'show_timer' not in st.session_state:
-    st.session_state.show_timer = False
-if 'timer_start' not in st.session_state:
-    st.session_state.timer_start = None
 
 # AWS and OpenAI Client Initialization
 @st.cache_resource
@@ -399,7 +395,13 @@ def render_results_page():
                 st.markdown("### 📱 Scan to Download")
                 st.image(qr_image, width=200)
                 st.markdown("**Scan with your phone**")
-                st.caption(f"[Direct Link]({image_url})")
+                st.download_button(
+                    label="⬇️ Download Image",
+                    data=st.session_state.stylized_image_bytes,
+                    file_name=filename if filename else "stylized_image.png",
+                    mime="image/png",
+                    use_container_width=True
+                )
                 st.markdown('</div>', unsafe_allow_html=True)
         else:
             st.error("Failed to upload to cloud storage")
