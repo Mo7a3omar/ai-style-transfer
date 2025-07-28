@@ -27,7 +27,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Responsive CSS for various screen sizes - no cropping, no fixed heights, dynamic widths
+# Footer hiding and Streamlit branding hiding only; no scroll or overflow edits
 st.markdown("""
 <style>
     footer, .stApp > footer, footer[data-testid="stFooter"], div[data-testid="stBottom"] {
@@ -57,27 +57,17 @@ st.markdown("""
     *:contains("Hosted by") {
         display: none !important;
     }
-    html, body, .stApp {
-        width: 100vw !important;
-        min-height: 100vh !important;
-        max-width: 100vw !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    .block-container, .main {
-        width: 100vw !important;
-        max-width: 100vw !important;
-        margin: 0 !important;
-        padding: 0 0.5rem !important;
-        box-sizing: border-box !important;
-    }
-    .element-container, .stButton, .stCameraInput, .stImage, .stDownloadButton, .stMarkdown {
-        max-width: 100vw !important;
-    }
-    @media (max-width: 800px) {
+    @media (max-width: 950px) {
         .stColumns {
             flex-direction: column !important;
             max-width: 100vw !important;
+        }
+    }
+    @media (max-width: 650px) {
+        .block-container, .main,
+        .stMarkdown, .stImage, .stButton, .stDownloadButton, .element-container {
+            padding: 0 !important;
+            margin: 0 !important;
         }
     }
 </style>
@@ -306,7 +296,7 @@ def render_image_capture_page():
         style_info = STYLE_PROMPTS[st.session_state.selected_style]
         st.success(f"Selected Style: {style_info['name']}")
 
-    camera_photo = st.camera_input("📸 Position yourself and take a selfie", use_container_width=True)
+    camera_photo = st.camera_input("📸 Position yourself and take a selfie")
 
     if camera_photo:
         st.session_state.captured_image_bytes = camera_photo.getvalue()
@@ -364,7 +354,7 @@ def render_results_page():
             if qr_image:
                 st.markdown('<div class="qr-section">', unsafe_allow_html=True)
                 st.markdown("### 📱 Scan to Download")
-                st.image(qr_image, use_container_width=True)
+                st.image(qr_image, width=200)
                 st.markdown("**Scan with your phone**")
                 st.download_button(
                     label="⬇️ Download Image",
