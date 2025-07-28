@@ -330,41 +330,21 @@ def render_style_selection_page():
 def render_image_capture_page():
     st.markdown('<h1 class="main-header">Take Your Photo</h1>', unsafe_allow_html=True)
     st.markdown('<p class="page-indicator">Step 2 of 3: Capture Your Image</p>', unsafe_allow_html=True)
-
+    
     if st.session_state.selected_style:
-        style_info = STYLE_PROMPTS[st.session_state.selected_style]
-        st.success(f"Selected Style: {style_info['name']}")
-
-    # Show camera input if timer hasn't started
-    if not st.session_state.show_timer:
-        camera_photo = st.camera_input("📸 Position yourself and take a selfie")
-        if camera_photo:
-            # Set timer start and show the timer
-            st.session_state.show_timer = True
-            st.session_state.timer_start = datetime.now().timestamp()
-            st.session_state._temp_photo_bytes = camera_photo.getvalue()  # temp storage
-            st.rerun()
-    else:
-        # Calculate how much time has elapsed
-        elapsed = datetime.now().timestamp() - st.session_state.timer_start
-        remaining = 3 - int(elapsed)
-        if remaining > 0:
-            st.markdown(f"<h2 style='text-align: center; color: #FC0; font-size: 4rem;'>{remaining}</h2>", unsafe_allow_html=True)
-            st.markdown("<div style='text-align:center;'>Get Ready...</div>", unsafe_allow_html=True)
-            st.experimental_rerun()
-        else:
-            # Timer done; store photo, move page
-            st.session_state.captured_image_bytes = st.session_state._temp_photo_bytes
-            del st.session_state['show_timer']
-            del st.session_state['timer_start']
-            del st.session_state['_temp_photo_bytes']
-            st.session_state.current_page = 'result_display'
-            st.rerun()
-
+    style_info = STYLE_PROMPTS[st.session_state.selected_style]
+    st.success(f"Selected Style: {style_info['name']}")
+    
+    camera_photo = st.camera_input("📸 Position yourself and take a selfie")
+    
+    if camera_photo:
+    st.session_state.captured_image_bytes = camera_photo.getvalue()
+    st.session_state.current_page = 'result_display'
+    st.rerun()
+    
     if st.button("← Back to Style Selection", use_container_width=True):
-        st.session_state.current_page = 'style_selection'
-        st.rerun()
-
+    st.session_state.current_page = 'style_selection'
+    st.rerun()
 
 def render_results_page():
     st.markdown('<h1 class="main-header">Your AI Masterpiece</h1>', unsafe_allow_html=True)
